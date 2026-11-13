@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Observatório Amazonas — PPA 2024–2027</title>
+<style>
+:root{--bg:#f4f3f0;--surface:#fcfcfb;--line:#e3e1dc;--soft:#eeece8;--ink:#0b0b0b;--ink2:#52514e;--ink3:#77756f;
+  --accent:#2a78d6;--meta:#77756f;--good:#0ca30c;--warning:#fab219;--critical:#d03b3b;--nodata:#b5b3ad}
+@media (prefers-color-scheme:dark){:root{--bg:#121211;--surface:#1a1a19;--line:#33332f;--soft:#262624;--ink:#f0efec;--ink2:#c3c2b7;--ink3:#97958d;--accent:#3987e5;--meta:#97958d;--nodata:#55544f}}
+*{box-sizing:border-box}
+body{margin:0;font:14px/1.45 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;background:var(--bg);color:var(--ink)}
+header{background:var(--surface);border-bottom:1px solid var(--line);padding:12px 24px;display:flex;gap:16px;align-items:center;flex-wrap:wrap;position:sticky;top:0;z-index:3}
+header h1{font-size:16px;margin:0}header .sub{font-size:12px;color:var(--ink3)}
+nav{display:flex;gap:2px;flex-wrap:wrap}nav a{padding:7px 12px;border-radius:8px;color:var(--ink2);text-decoration:none}
+nav a[aria-current=page]{background:var(--accent);color:#fff}nav a:hover{background:var(--soft)}
+nav a[aria-current=page]:hover{background:var(--accent)}
+main{padding:18px 24px 40px;max-width:1500px}
+h2{font-size:19px;margin:0 0 4px}h3{font-size:14px;margin:18px 0 8px}
+.lead{color:var(--ink2);font-size:13px;margin:0 0 14px;max-width:980px}
+.tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin:10px 0 16px}
+.tile{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:11px 13px}
+.tile .v{font-size:22px;font-weight:650;font-variant-numeric:tabular-nums}.tile .l{font-size:12px;color:var(--ink2)}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:14px 16px;margin-bottom:14px;overflow-x:auto}
+.filters{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:12px}
+select,input{font:inherit;color:var(--ink);background:var(--surface);border:1px solid var(--line);border-radius:7px;padding:6px 8px}
+input[type=search]{min-width:240px;flex:1;max-width:420px}
+table{border-collapse:collapse;width:100%;font-size:13px}
+th{text-align:left;font-weight:600;color:var(--ink2);border-bottom:1px solid var(--line);padding:6px 8px;white-space:nowrap}
+td{border-bottom:1px solid var(--soft);padding:6px 8px;vertical-align:top}
+td.n,th.n{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
+tr.click{cursor:pointer}tr.click:hover td{background:var(--soft)}
+.muted{color:var(--ink3)}.small{font-size:12px}
+.st{display:inline-flex;gap:5px;align-items:center;white-space:nowrap;font-size:12px}
+.st i{width:9px;height:9px;border-radius:50%;background:var(--nodata);display:inline-block}
+.st.ok i{background:var(--good)}.st.at i{background:var(--warning)}.st.fo i{background:var(--critical)}
+.selo{display:inline-block;font-size:11px;padding:0 7px;border-radius:9px;border:1px solid var(--line);color:var(--ink2);white-space:nowrap}
+.selo.val{border-color:var(--warning)}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+dl{display:grid;grid-template-columns:170px 1fr;gap:4px 12px;margin:0;font-size:13px}dt{color:var(--ink3)}dd{margin:0}
+svg text{fill:var(--ink3);font-size:11px}svg .g{stroke:var(--soft)}
+.legend{display:flex;gap:14px;font-size:12px;color:var(--ink2);margin-top:4px}
+.legend span{display:inline-flex;gap:5px;align-items:center}.legend i{width:12px;height:12px;border-radius:3px;display:inline-block}
+a{color:var(--accent)}
+.aviso{font-size:12px;color:var(--ink3);margin-top:20px}
+@media (max-width:900px){.grid2{grid-template-columns:1fr}dl{grid-template-columns:1fr}main{padding:14px}}
+</style>
+</head>
+<body>
+<header>
+  <div><h1>Observatório Amazonas</h1><div class="sub">Monitoramento Governamental e Inteligência Territorial · Fase 1: PPA 2024–2027</div></div>
+  <nav id="menu"></nav>
+</header>
+<main id="app"></main>
+<script src="dados/ppa.js"></script>
+<script>
+const P = window.PPA;
+const $ = s => document.querySelector(s);
+const esc = s => String(s ?? "").replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+const norm = s => String(s ?? "").normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase();
+const nf = (v, d = 2) => v == null ? "—" : v.toLocaleString("pt-BR", { maximumFractionDigits: d });
+const DOC = Object.fromEntries(P.documentos.map(d => [d.id, d]));
+const PROG = Object.fromEntries(P.programas.map(p => [p.id, p]));
+const AREA = Object.fromEntries(P.areas.map(a => [a.id, a]));
+const ANOS = [...new Set(P.indicadores.flatMap(i => i.observacoes.map(o => +o.data_referencia.slice(0, 4))))].sort();
+const ST = { meta_atingida: ["Meta atingida", "ok"], atencao: ["Atenção", "at"], fora_da_trajetoria: ["Fora da meta", "fo"],
+  sem_dado: ["Sem dado", ""], meta_nao_aplicavel: ["Meta não aplicável", ""] };
+const st = s => { const [l, c] = ST[s] || ST.sem_dado; return `<span class="st ${c}"><i></i>${l}</span>`; };
+const POL = { maior_melhor: "↑ quanto maior, melhor", menor_melhor: "↓ quanto menor, melhor", faixa: "faixa ideal", indefinida: "indefinida" };
+const linkPag = (docId, pag) => DOC[docId] ? `<a href="${esc(DOC[docId].url)}#page=${pag}" target="_blank" rel="noopener" title="${esc(DOC[docId].titulo)}">p. ${pag} ↗</a>` : "";
+// o relatório seguinte republica o ano anterior: vale a publicação mais recente (última na lista)
+const porAno = i => Object.values(Object.fromEntries(i.observacoes.map(o => [o.data_referencia.slice(0, 4), o])));
+const obsAno = (i, ano) => porAno(i).find(o => o.data_referencia.startsWith(ano));
+const F = { ano: String(ANOS[ANOS.length - 1]), area: "", prog: "", st: "", q: "" };
+
+function menu(r) {
+  $("#menu").innerHTML = [["indicadores", "Indicadores"], ["programas", "Programas"], ["documentos", "Documentos e fontes"]]
+    .map(([k, n]) => `<a href="#${k}" ${r === k ? 'aria-current="page"' : ""}>${n}</a>`).join("");
+}
+
+// ---------- indicadores ----------
+function filtrados() {
+  const q = norm(F.q);
+  return P.indicadores.filter(i => {
+    const p = PROG[i.program_id] || {}, o = obsAno(i, F.ano);
+    return (!F.area || p.area_resultado_id === F.area) && (!F.prog || i.program_id === F.prog)
+      && (!F.st || (o ? o.status : "sem_dado") === F.st) && (!q || norm(i.nome + " " + p.nome + " " + p.orgao_responsavel).includes(q));
+  });
+}
+function telaIndicadores() {
+  const lista = filtrados();
+  const cont = s => P.indicadores.filter(i => { const o = obsAno(i, F.ano); return (o ? o.status : "sem_dado") === s; }).length;
+  const val = P.indicadores.filter(i => i.observacoes.some(o => o.status_qualidade === "em_validacao")).length;
+  return `<h2>Indicadores dos programas do PPA</h2>
+  <p class="lead">Indicadores de resultado dos programas, com meta e valor apurado publicados nos Relatórios Anuais de Avaliação do PPA. Cada valor aponta para o documento e a página de origem. O status é calculado pela plataforma considerando a polaridade; o “% (B/A)” publicado é mostrado como está.</p>
+  <div class="tiles">
+    <div class="tile"><div class="v">${P.programas.length}</div><div class="l">programas avaliados</div></div>
+    <div class="tile"><div class="v">${P.indicadores.length}</div><div class="l">indicadores</div></div>
+    <div class="tile"><div class="v">${cont("meta_atingida")}</div><div class="l">${st("meta_atingida")} em ${F.ano}</div></div>
+    <div class="tile"><div class="v">${cont("atencao")}</div><div class="l">${st("atencao")} em ${F.ano}</div></div>
+    <div class="tile"><div class="v">${cont("fora_da_trajetoria")}</div><div class="l">${st("fora_da_trajetoria")} em ${F.ano}</div></div>
+    <div class="tile"><div class="v">${cont("sem_dado") + cont("meta_nao_aplicavel")}</div><div class="l">sem dado ou sem meta em ${F.ano}</div></div>
+    <div class="tile"><div class="v">${val}</div><div class="l">com valor em validação (OCR × texto)</div></div>
+  </div>
+  <div class="filters">
+    <select id="fano" aria-label="Exercício">${ANOS.map(a => `<option ${F.ano == a ? "selected" : ""}>${a}</option>`).join("")}</select>
+    <select id="farea" aria-label="Área de resultado"><option value="">Todas as áreas de resultado</option>${P.areas.map(a => `<option value="${a.id}" ${F.area === a.id ? "selected" : ""}>${esc(a.nome)}</option>`).join("")}</select>
+    <select id="fprog" aria-label="Programa"><option value="">Todos os programas</option>${P.programas.filter(p => !F.area || p.area_resultado_id === F.area).map(p => `<option value="${p.id}" ${F.prog === p.id ? "selected" : ""}>${p.codigo} — ${esc(p.nome)}</option>`).join("")}</select>
+    <select id="fst" aria-label="Status"><option value="">Todos os status</option>${Object.entries(ST).map(([k, [l]]) => `<option value="${k}" ${F.st === k ? "selected" : ""}>${l}</option>`).join("")}</select>
+    <input type="search" id="fq" placeholder="Buscar indicador, programa, órgão…" value="${esc(F.q)}">
+    <span class="muted small">${lista.length} indicadores</span>
+  </div>
+  <div class="card"><table><thead><tr><th>Indicador</th><th>Programa</th><th>Unidade</th><th>Polaridade</th><th class="n">Meta ${F.ano}</th><th class="n">Apurado ${F.ano}</th><th class="n">% publicado</th><th>Status</th><th>Fonte</th></tr></thead><tbody>
+  ${lista.map(i => { const p = PROG[i.program_id] || {}, o = obsAno(i, F.ano);
+    return `<tr class="click" data-i="${i.id}"><td>${esc(i.nome)}${o && o.status_qualidade === "em_validacao" ? ` <span class="selo val">em validação</span>` : ""}</td>
+      <td><b>${esc(p.codigo)}</b> <span class="muted">${esc(p.nome)}</span></td><td>${esc(i.unidade)}</td>
+      <td class="small">${POL[i.polaridade]}${i.polaridade_origem === "inferida" ? ' <span class="selo" title="Inferida pelo nome; precisa validação">inferida</span>' : ""}</td>
+      <td class="n">${o ? nf(o.meta, 4) : "—"}</td><td class="n">${o ? nf(o.valor, 4) : "—"}</td><td class="n">${o && o.pct_publicado != null ? nf(o.pct_publicado) + "%" : "—"}</td>
+      <td>${st(o ? o.status : "sem_dado")}</td><td class="small">${o ? linkPag(o.documento_id, o.pagina) : ""}</td></tr>`; }).join("")}
+  </tbody></table></div>`;
+}
+function posIndicadores() {
+  $("#fano").onchange = e => { F.ano = e.target.value; render(); };
+  $("#farea").onchange = e => { F.area = e.target.value; F.prog = ""; render(); };
+  $("#fprog").onchange = e => { F.prog = e.target.value; render(); };
+  $("#fst").onchange = e => { F.st = e.target.value; render(); };
+  $("#fq").oninput = e => { F.q = e.target.value; clearTimeout(F.t); F.t = setTimeout(() => { render(); $("#fq").focus(); $("#fq").setSelectionRange(F.q.length, F.q.length); }, 250); };
+}
+
+// meta x apurado por exercício (barras agrupadas, um eixo); lacuna quando não há dado
+function grafico(i) {
+  const obs = porAno(i).filter(o => o.valor != null || o.meta != null);
+  if (!obs.length) return `<p class="muted">Sem valores publicados.</p>`;
+  const W = 520, H = 200, P = { l: 70, r: 10, t: 12, b: 26 };
+  const max = Math.max(...obs.flatMap(o => [o.valor ?? 0, o.meta ?? 0])) * 1.1 || 1;
+  const bw = Math.min(46, (W - P.l - P.r) / obs.length / 2.6), gx = (W - P.l - P.r) / obs.length;
+  const Y = v => H - P.b - v / max * (H - P.t - P.b);
+  let s = `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Meta e apurado por exercício: ${esc(i.nome)}">`;
+  [0, max / 2, max].forEach(v => s += `<line class="g" x1="${P.l}" x2="${W - P.r}" y1="${Y(v)}" y2="${Y(v)}"/><text x="${P.l - 6}" y="${Y(v) + 4}" text-anchor="end">${nf(v, 2)}</text>`);
+  obs.forEach((o, k) => {
+    const cx = P.l + gx * k + gx / 2, ano = o.data_referencia.slice(0, 4);
+    [[o.meta, "var(--meta)", "Meta", -bw - 1], [o.valor, "var(--accent)", "Apurado", 1]].forEach(([v, cor, nome, dx]) => {
+      if (v == null) { s += `<text x="${cx + dx + bw / 2}" y="${H - P.b - 4}" text-anchor="middle">s/d</text>`; return; }
+      const y = Y(v), h = H - P.b - y;
+      s += `<path d="M${cx + dx},${H - P.b} v${-Math.max(0, h - 4)} q0,-4 4,-4 h${bw - 8} q4,0 4,4 v${Math.max(0, h - 4)} z" fill="${cor}"><title>${nome} ${ano}: ${nf(v, 4)} ${esc(i.unidade)}</title></path>`;
+    });
+    s += `<text x="${cx}" y="${H - 8}" text-anchor="middle">${ano}</text>`;
+  });
+  return s + `</svg><div class="legend"><span><i style="background:var(--meta)"></i>Meta (previsto)</span><span><i style="background:var(--accent)"></i>Apurado</span></div>`;
+}
+function telaIndicador(id) {
+  const i = P.indicadores.find(x => x.id === id);
+  if (!i) return `<p>Indicador não encontrado. <a href="#indicadores">Voltar</a></p>`;
+  const p = PROG[i.program_id] || {};
+  const ult = porAno(i).filter(o => o.valor != null).slice(-1)[0];
+  return `<p><a href="#indicadores">← indicadores</a></p><h2>${esc(i.nome)}</h2>
+  <p class="lead">${esc(p.codigo)} — ${esc(p.nome)} · ${esc(p.orgao_responsavel || "")} · área: ${esc((AREA[p.area_resultado_id] || {}).nome || "—")}</p>
+  <div class="tiles">
+    <div class="tile"><div class="v">${ult ? nf(ult.valor, 4) : "—"}</div><div class="l">último valor apurado${ult ? ` (${ult.data_referencia.slice(0, 4)})` : ""} · ${esc(i.unidade)}</div></div>
+    <div class="tile"><div class="v">${ult ? nf(ult.meta, 4) : "—"}</div><div class="l">meta do mesmo exercício</div></div>
+    <div class="tile"><div class="v">${ult && ult.meta != null ? (ult.valor - ult.meta > 0 ? "+" : "") + nf(ult.valor - ult.meta, 4) : "—"}</div><div class="l">diferença absoluta (apurado − meta)</div></div>
+    <div class="tile"><div class="v" style="font-size:16px">${st(ult ? ult.status : "sem_dado")}</div><div class="l">status calculado (polaridade ${i.polaridade_origem})</div></div>
+  </div>
+  <div class="grid2"><div class="card"><h3 style="margin-top:0">Meta × apurado por exercício</h3>${grafico(i)}</div>
+  <div class="card"><h3 style="margin-top:0">Ficha</h3><dl>
+    <dt>Unidade</dt><dd>${esc(i.unidade)}</dd><dt>Periodicidade</dt><dd>${esc(i.periodicidade)}</dd>
+    <dt>Polaridade</dt><dd>${POL[i.polaridade]} <span class="selo">${i.polaridade_origem}</span></dd>
+    <dt>Tipo</dt><dd>Indicador de programa (resultado)</dd>
+    <dt>Fórmula</dt><dd class="muted">Não publicada no relatório de avaliação (pendente: anexos do PPA)</dd>
+    <dt>Objetivo do programa</dt><dd>${esc(p.objetivo || "—")}</dd><dt>Público-alvo</dt><dd>${esc(p.publico_alvo || "—")}</dd>
+    <dt>ODS</dt><dd>${esc(p.ods || "—")}</dd></dl></div></div>
+  <div class="card"><h3 style="margin-top:0">Linha do tempo das publicações</h3><table><thead><tr><th>Exercício</th><th class="n">Meta</th><th class="n">Apurado</th><th class="n">% publicado</th><th>Status</th><th>Selo</th><th>Documento</th><th>Página</th></tr></thead><tbody>
+  ${i.observacoes.map(o => `<tr><td>${o.data_referencia.slice(0, 4)}</td><td class="n">${nf(o.meta, 4)}</td><td class="n">${nf(o.valor, 4)}</td><td class="n">${o.pct_publicado_original || "—"}</td><td>${st(o.status)}</td>
+    <td><span class="selo ${o.status_qualidade === "em_validacao" ? "val" : ""}">${o.status_qualidade === "em_validacao" ? "em validação" : "extraído de documento"}</span></td>
+    <td class="small">${esc((DOC[o.documento_id] || {}).titulo)}</td><td>${linkPag(o.documento_id, o.pagina)}</td></tr>`).join("")}</tbody></table>
+  <p class="aviso">Valores originais preservados como publicados. Ausência de dado é mostrada como “—”, nunca como zero. Status: maior é melhor → atingida se apurado ≥ meta, atenção até 10% abaixo; menor é melhor → atingida se apurado ≤ meta, atenção até 10% acima.</p></div>`;
+}
+
+// ---------- programas ----------
+function telaProgramas() {
+  return `<h2>Programas avaliados</h2><p class="lead">Programas do PPA 2024–2027 presentes nos relatórios de avaliação, agrupados por área de resultado. Atributos descritivos vêm do relatório mais recente.</p>`
+    + P.areas.map(a => `<div class="card"><h3 style="margin-top:0">${esc(a.nome)}</h3><table><thead><tr><th>Programa</th><th>Órgão responsável</th><th>Tipo · abrangência</th><th>Objetivo</th><th class="n">Indicadores</th><th>Fonte</th></tr></thead><tbody>`
+      + P.programas.filter(p => p.area_resultado_id === a.id).map(p => `<tr class="click" data-go="#indicadores" data-prog="${p.id}"><td><b>${p.codigo}</b> ${esc(p.nome)}</td><td>${esc(p.orgao_responsavel || "—")}${p.orgaos_participantes ? `<div class="muted small">${esc(p.orgaos_participantes)}</div>` : ""}</td>
+        <td class="small">${esc(p.tipo || "—")} · ${esc(p.abrangencia || "—")}</td><td class="small">${esc((p.objetivo || "—").slice(0, 260))}${(p.objetivo || "").length > 260 ? "…" : ""}</td>
+        <td class="n">${P.indicadores.filter(i => i.program_id === p.id).length}</td><td class="small">${linkPag(p.documento_id, p.pagina)}</td></tr>`).join("") + `</tbody></table></div>`).join("");
+}
+
+// ---------- documentos ----------
+function telaDocumentos() {
+  return `<h2>Documentos e fontes</h2><p class="lead">Catálogo documental (camada bronze): cada arquivo oficial é guardado sem alterações, com hash SHA-256. Versões do PPA e execuções de ingestão ficam registradas.</p>
+  <div class="card"><h3 style="margin-top:0">Versões do PPA</h3><table><thead><tr><th>Versão</th><th>Instrumento legal</th><th>Vigência</th><th>Status</th></tr></thead><tbody>
+  ${P.ppa_versions.map(v => `<tr><td>${esc(v.nome)}</td><td>${esc(v.instrumento_legal)}</td><td>${v.vigencia_inicial} a ${v.vigencia_final}</td><td>${esc(v.status)}</td></tr>`).join("")}</tbody></table>
+  <p class="aviso">As metas de 2026–2027 da Lei nº 7.978/2025 ainda não foram extraídas: próxima etapa.</p></div>
+  <div class="card"><h3 style="margin-top:0">Documentos</h3><table><thead><tr><th>Documento</th><th>Tipo</th><th class="n">Páginas</th><th class="n">MB</th><th>SHA-256</th><th>Ingestão</th></tr></thead><tbody>
+  ${P.documentos.map(d => `<tr><td><a href="${esc(d.url)}" target="_blank" rel="noopener">${esc(d.titulo)} ↗</a></td><td>${esc(d.tipo)}</td><td class="n">${d.paginas}</td><td class="n">${nf(d.bytes / 1e6, 1)}</td><td class="small"><code title="${d.sha256}">${d.sha256.slice(0, 16)}…</code></td><td class="small">${esc((d.data_ingestao || "").slice(0, 10))}</td></tr>`).join("")}</tbody></table></div>
+  <div class="card"><h3 style="margin-top:0">Execuções de ingestão</h3><table><thead><tr><th>Fonte</th><th>Data/hora</th><th class="n">Recebidos</th><th class="n">Aceitos</th><th class="n">Rejeitados</th><th>Status</th></tr></thead><tbody>
+  ${P.ingestoes.map(r => `<tr><td>${esc(r.fonte)}</td><td class="small">${esc(r.data_hora)}</td><td class="n">${r.registros_recebidos}</td><td class="n">${r.registros_aceitos}</td><td class="n">${r.registros_rejeitados}</td><td>${esc(r.status)}</td></tr>`).join("")}</tbody></table>
+  <p class="aviso">Base gerada em ${esc(P.gerado_em)}. Método: tabelas lidas por OCR (Tesseract, português, 300 dpi) e conferidas com a camada de texto do PDF; divergências ficam “em validação”.</p></div>`;
+}
+
+function render() {
+  const [r, id] = (location.hash.slice(1) || "indicadores").split("/");
+  menu(r === "indicador" ? "indicadores" : r);
+  const app = $("#app");
+  if (r === "indicador") app.innerHTML = telaIndicador(decodeURIComponent(id));
+  else if (r === "programas") app.innerHTML = telaProgramas();
+  else if (r === "documentos") app.innerHTML = telaDocumentos();
+  else { app.innerHTML = telaIndicadores(); posIndicadores(); }
+  app.querySelectorAll("tr[data-i]").forEach(tr => tr.onclick = () => location.hash = "#indicador/" + encodeURIComponent(tr.dataset.i));
+  app.querySelectorAll("tr[data-prog]").forEach(tr => tr.onclick = () => { F.prog = tr.dataset.prog; F.area = (PROG[F.prog] || {}).area_resultado_id || ""; location.hash = "#indicadores"; });
+  window.scrollTo(0, 0);
+}
+window.onhashchange = render;
+render();
+</script>
+</body>
+</html>

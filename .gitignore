@@ -1,3 +1,9 @@
 # PDFs dos e-books (>100 MB, limite do GitHub); baixar do site omargovernador.com.br
 *.pdf
 __pycache__/
+# Observatório: bronze (originais), silver (texto/OCR) e o SQLite são reconstruídos pelo pipeline
+observatorio/bronze/
+observatorio/silver/
+observatorio/dados/*.sqlite
+# cache da ferramenta de design
+.impeccable/

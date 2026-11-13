@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Observatório Amazonas — Painel</title>
+<link rel="stylesheet" href="painel.css?v=11">
+</head>
+<body>
+<div class="app" id="app">
+  <aside class="sidebar" id="sidebar" aria-label="Menu principal">
+    <a class="brand" href="#/visao">
+      <svg class="brand-mark" viewBox="0 0 32 32" aria-hidden="true"><path d="M2 18c5-6 9-6 14 0s9 6 14 0" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/><path d="M2 24c5-6 9-6 14 0s9 6 14 0" fill="none" stroke="var(--clay)" stroke-width="2.4" stroke-linecap="round"/><circle cx="16" cy="8" r="3" fill="var(--clay)"/></svg>
+      <span class="brand-text">Observatório<br><b>Amazonas</b></span>
+    </a>
+    <nav id="menu"></nav>
+    <p class="sidebar-foot" id="sidebar-foot"></p>
+  </aside>
+  <div class="main">
+    <header class="topbar">
+      <button class="icon-btn" id="toggle-menu" aria-label="Recolher menu" aria-expanded="true"><svg viewBox="0 0 24 24"><path d="M4 6h16M4 12h16M4 18h10"/></svg></button>
+      <div class="search">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+        <input id="busca" type="search" list="lista-mun" placeholder="Buscar município…" aria-label="Buscar município" autocomplete="off">
+        <datalist id="lista-mun"></datalist>
+      </div>
+      <div class="topbar-right">
+        <span class="stamp" id="stamp"></span>
+        <button class="btn btn-ghost" id="btn-imprimir" title="Imprimir ou salvar em PDF"><svg viewBox="0 0 24 24"><path d="M6 9V3h12v6M6 18H4v-7h16v7h-2M8 14h8v7H8z"/></svg><span>Imprimir</span></button>
+      </div>
+    </header>
+    <main class="page" id="page" tabindex="-1"></main>
+  </div>
+</div>
+<div class="tooltip" id="tip" role="status" hidden></div>
+<script src="../dashboard/municipios.js"></script>
+<script src="dados/ppa.js"></script>
+<script src="dados/painel.js"></script>
+<script src="dados/territorio.js"></script>
+<script src="dados/camadas.js"></script>
+<script src="painel.js?v=11"></script>
+</body>
+</html>
