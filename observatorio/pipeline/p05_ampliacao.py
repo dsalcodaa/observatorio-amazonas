@@ -1170,7 +1170,7 @@ def energia():
                 n_op[c] += 1
             itens.append({"nome": r["NomEmpreendimento"], "tipo": TIPO_USINA.get(r["SigTipoGeracao"], r["SigTipoGeracao"]),
                           "combustivel": r["NomFonteCombustivel"], "fase": r["DscFaseUsina"], "potencia_mw": round(mw, 2),
-                          "inicio": r["DatEntradaOperacao"], "mun": c,
+                          "inicio": r["DatEntradaOperacao"] if r["DatEntradaOperacao"][:4] > "1900" else None, "mun": c,  # 1900 = data vazia na ANEEL
                           "lat": B.num(r["NumCoordNEmpreendimento"]), "lon": B.num(r["NumCoordEEmpreendimento"])})
         ref = linhas[0]["DatGeracaoConjuntoDados"]
         CAMADAS["pontos"]["usinas"] = {"nome": "Usinas de geração (ANEEL)", "fonte": f"ANEEL — SIGA, empreendimentos de geração ({dataBR(ref)})", "url": SIGA,

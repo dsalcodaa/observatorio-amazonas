@@ -78,7 +78,7 @@
     { id: "transporte", nome: "Transporte", icon: "route", resumo: "Rodovias federais e estaduais, ramais, hidrovias, portos, terminais flutuantes, pontes e aeródromos.",
       kpis: ["km_federais", "km_estaduais", "km_ramais", "flutuantes"], series: [], mapa: daArea("transporte"), ppa: /infra|log.stica|mobil/i },
     { id: "energia", nome: "Energia e telecomunicações", icon: "bolt", resumo: "Usinas de geração (ANEEL), gasodutos e estações rádio base de telefonia móvel.",
-      kpis: ["potencia_mw", "pct_fossil", "erbs", "erbs_10mil"], series: [], mapa: daArea("energia"), ppa: /energ|conectiv|telecom|digital|infra/i },
+      kpis: ["potencia_mw", "pct_fossil", "erbs", "erbs_10mil"], series: [], mapa: daArea("energia"), ppa: /energ|conectiv|telecom|digital/i },
     { id: "cidades", nome: "Cidades", icon: "city", resumo: "Favelas e comunidades urbanas, densidade e domicílios (Censo 2022).",
       kpis: ["pop_fcu", "domicilios", "moradores_dom", "densidade"], series: [], mapa: [...daArea("cidades"), "densidade", "domicilios", "moradores_dom"], ppa: /cidade|habita|urban/i },
     { id: "saneamento", nome: "Saneamento", icon: "pipe", resumo: "Água, esgoto e lixo nos domicílios (Censo 2022) e atendimento e investimento em esgoto (ANA).",
@@ -473,14 +473,13 @@
 
   /* ---------------- blocos específicos de cada área */
   function ladoArea(a) {
-    if (a.id === "eleitorado" && T.eleitorado) return `<div class="card c4"><div class="card-head"><h2>Escolaridade do eleitorado</h2><span class="sub">TSE 2026</span></div><div class="card-body">${barras(Object.entries(T.eleitorado.estado.escolaridade), { total: T.eleitorado.estado.eleitores, cor: "var(--s3)" })}</div></div>`;
     return a.ppa ? cardPPA(a.ppa, "Metas do PPA nesta área") : "";
   }
   function principalArea(a) {
     if (a.id === "demografia" && T.estado?.piramide) return `<div class="card c8"><div class="card-head"><h2>Pirâmide etária e cor ou raça</h2><span class="sub">Censo 2022 · soma dos 62 municípios</span></div><div class="card-body duo">
       <div>${piramide(T.estado.piramide, IDADES)}</div><div><h3 class="h3">Cor ou raça</h3>${barras(Object.entries(T.estado.cor).sort((x, y) => y[1] - x[1]), { cor: "var(--s2)" })}
       <h3 class="h3" style="margin-top:14px">Povos e comunidades</h3>${barras([["Indígenas", IND.pct_indigena?.estado], ["Quilombolas", IND.pct_quilombola?.estado]], { u: "%", cor: "var(--s4)" })}</div></div></div>`;
-    if (a.id === "eleitorado" && T.eleitorado) return `<div class="card c8"><div class="card-head"><h2>Perfil do eleitorado do Amazonas</h2><span class="sub">${esc(T.eleitorado.fonte)}</span></div><div class="card-body">${perfilEleitor(T.eleitorado.estado)}</div></div>`;
+    if (a.id === "eleitorado" && T.eleitorado) return `<div class="card c12"><div class="card-head"><h2>Perfil do eleitorado do Amazonas</h2><span class="sub">${esc(T.eleitorado.fonte)}</span></div><div class="card-body">${perfilEleitor(T.eleitorado.estado)}</div></div>`;
     if (a.id === "saneamento" && T.estado?.esgoto) return `<div class="card c8"><div class="card-head"><h2>Destino do esgoto e do lixo nos domicílios</h2><span class="sub">Censo 2022 · soma dos 62 municípios</span></div><div class="card-body duo">
       <div><h3 class="h3">Esgoto</h3>${barras(Object.entries(T.estado.esgoto).sort((x, y) => y[1] - x[1]), { cor: "var(--s1)" })}</div><div><h3 class="h3">Lixo</h3>${barras(Object.entries(T.estado.lixo).sort((x, y) => y[1] - x[1]), { cor: "var(--s2)" })}</div></div></div>`;
     if (a.id === "rural" && T.rural) {
@@ -497,7 +496,7 @@
   }
   function rodapeArea(a) {
     if (a.id === "economia") return cardSetores();
-    if (a.id === "seguranca") return `<div class="grid">${cardSerie(["ssp_homicidios", "ssp_homicidio_taxa", "efetivo_policial"], "Série oficial do estado (SSP-AM)", { col: "c12" })}<div class="card c12"><div class="card-head"><h2>Unidades policiais e de bombeiros</h2><span class="sub">${esc(CAM.pontos.seguranca?.nome || "")}</span></div><div class="card-body">${mapaCamadas(["seguranca"])}</div></div></div>
+    if (a.id === "seguranca") return `<div class="grid">${cardSerie(["ssp_homicidios", "ssp_homicidio_taxa", "efetivo_policial"], "Série oficial do estado (SSP-AM)", { col: "c12" })}<div class="card c12"><div class="card-head"><h2>Unidades policiais e de bombeiros</h2><span class="sub">${esc((CAM.pontos.seguranca?.fonte || "").split(" — ")[0])} · ${nf(CAM.pontos.seguranca?.itens.length)} unidades</span></div><div class="card-body">${mapaCamadas(["seguranca"])}</div></div></div>
       <p class="note">Dados de ocorrências agregados por município e mês (SINESP VDE) e por ano (Anuário SSP-AM). O mapa da SSP-AM traz as unidades de Manaus e as sedes da PM no interior; delegacias do interior não estão nele. O painel não mostra localização de ocorrências individuais. A API <a href="https://github.com/rayonnunes/api_seguranca_publica" target="_blank" rel="noopener">rayonnunes/api_seguranca_publica</a> serviu de referência; seu endpoint público não respondeu, então os dados vêm direto do arquivo oficial do MJSP.</p>`;
     if (a.id === "educacao" && T.escolas) {
       const rede = {}; T.escolas.forEach(e => { const r = rede[e.rede] ||= { esc: 0, mat: 0, rur: 0, net: 0 }; r.esc++; r.mat += e.mat; r.rur += e.rural; r.net += e.internet; });

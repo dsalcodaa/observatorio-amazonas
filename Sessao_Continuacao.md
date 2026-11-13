@@ -138,7 +138,8 @@ Pendente: alfabetização/IDEB estadual oficial, mortalidade infantil e vacinaç
 ### Para retomar (próxima sessão)
 1. Servidor: na raiz `Omar_Eixos`, `python -m http.server 8765` → http://127.0.0.1:8765/observatorio/painel.html
 2. Atualizar dados (com drive D: conectado): em `observatorio/`, `python -I pipeline/p05_ampliacao.py`
-3. Faltam: prints de eleitorado, demografia, energia e versão celular (precisam do servidor local).
+3. Repositório público: https://github.com/dsalcodaa/observatorio-amazonas (remoto `observatorio`; o `origin` antigo é plataforma-gestao-amazonas). Site: https://dsalcodaa.github.io/observatorio-amazonas/ — o workflow `.github/workflows/pages.yml` publica a cada push na `main`. Para atualizar dados: rodar o p05, fazer commit e `git push observatorio main`.
+4. Prints conferidos em 13/11/2026 no site publicado: Energia, Segurança, Eleitorado, Demografia (1440 px) e Energia no celular (390 px, sem rolagem horizontal).
 
 ### Pendências resolvidas em 13/11/2026 (p05)
 - **Energia e telecomunicações** (página nova): usinas do SIGA/ANEEL (CSV de dados abertos, base 01/11/2026; 181 usinas no AM, 160 em operação, 2.709 MW, 89% térmica fóssil); ERBs (1.378) e gasodutos/oleodutos (86 trechos) da base EPE em `3-DADOS INFRAESTRUTURA/10-AMAZONIA LEGAL INFRAESTRUTURA`. A pasta `7-ENERGIA` (IBGE BC250 2017) quase não cobre o AM e não foi usada. A base EPE não tem data; o ano é o do arquivo. Nomes com acento perdido (U+FFFD) são recuperados quando são nome de município (`repara`).
